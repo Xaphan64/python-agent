@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+
 def main():
     parser = argparse.ArgumentParser(description="Agent")
     parser.add_argument("user_prompt", type=str, help="User prompt")
