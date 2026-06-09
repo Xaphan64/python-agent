@@ -3,6 +3,7 @@ import argparse
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from prompts import system_prompt
 
 
 def main():
@@ -25,14 +26,15 @@ def main():
     generate_content(client, messages, args.verbose)
     
 def generate_content(client: genai.Client, messages: list[types.Content], verbose: bool) -> None:
-    response = client.models.generate_content(model = "gemini-2.5-flash", contents=messages)
+    response = client.models.generate_content(model = "gemini-2.5-flash", contents=messages, config=types.GenerateContentConfig(system_instruction=system_prompt, temperature=0))
     if response.usage_metadata == None:
         raise RuntimeError('Metadata is missing')
 
     if verbose:
         print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
         print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
-        print(response.text)
+
+    print(response.text)
 
 if __name__ == "__main__":
     main()
