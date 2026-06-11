@@ -11,7 +11,6 @@ config=types.GenerateContentConfig(
     system_instruction=system_prompt
 )
 
-
 def main():
     parser = argparse.ArgumentParser(description="Agent")
     parser.add_argument("user_prompt", type=str, help="User prompt")
