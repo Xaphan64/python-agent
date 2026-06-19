@@ -32,6 +32,7 @@ def call_function(
         print(f" - Calling function: {function_call.name}({function_call.args})")
     else:
         print(f" - Calling function: {function_call.name}")
+        print("test")
 
     function_name = function_call.name or ""
     if function_name not in function_map:
