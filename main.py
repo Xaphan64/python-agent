@@ -1,5 +1,6 @@
 import os
 import argparse
+import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -28,27 +29,38 @@ def main():
 
     client = genai.Client(api_key=api_key)    
     messages: list[types.Content] = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
-    generate_content(client, messages, args.verbose)
+    for _ in range(20):
+        final = generate_content(client, messages, args.verbose)
+        if final:
+            print("Final response:")
+            print(final)
+            return
+    print("Max iterations reached")
+    sys.exit(1)
+
     
-def generate_content(client: genai.Client, messages: list[types.Content], verbose: bool) -> None:
+def generate_content(client: genai.Client, messages: list[types.Content], verbose: bool) -> str|None:
     response = client.models.generate_content(model = "gemini-2.5-flash", contents=messages, 
     config=types.GenerateContentConfig(system_instruction=system_prompt, tools=[available_functions], temperature=0))
     if response.usage_metadata == None:
         raise RuntimeError('Metadata is missing')
-
+    
+    if response.candidates:
+        for candidate in response.candidates:
+            if candidate.content:
+                messages.append(candidate.content)
+    
     if verbose:
         print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
         print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
 
     if not response.function_calls:        
         print("Response:")
-        print(response.text)
-    # else:
-    #     for function_call in response.function_calls:
-    #         print(f"Calling function: {function_call.name}({function_call.args})")
+        return response.text
 
     function_responses: list[types.Part] = []
     for function_call in response.function_calls:
+        print(f"Calling function: {function_call.name}({function_call.args})")
         result = call_function(function_call, verbose)
         if (
             not result.parts
@@ -59,6 +71,8 @@ def generate_content(client: genai.Client, messages: list[types.Content], verbos
         if verbose:
             print(f"-> {result.parts[0].function_response.response}")
         function_responses.append(result.parts[0])
+
+    messages.append(types.Content(role="user", parts=function_responses))
 
 if __name__ == "__main__":
     main()
