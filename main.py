@@ -53,7 +53,6 @@ def generate_content(client: genai.Client, messages: list[types.Content], verbos
     if verbose:
         print(f'Prompt tokens: {response.usage_metadata.prompt_token_count}')
         print(f'Response tokens: {response.usage_metadata.candidates_token_count}')
-        print('test')
 
     if not response.function_calls:        
         print("Response:")
